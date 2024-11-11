@@ -31,18 +31,21 @@ async function createZip() {
     }
 
     // Create a new JSZip instance
-    const zip = new JSZip();
-
-    zip.file(`resourcepack/assets/${namespace}/textures/desktop/${id}.png`, pngFileInput);
-    zip.file(`datapack/data/${namespace}/structures/interiors/${id}.nbt`, nbtFile);
-
     const meta = await CreateMcMeta();
-    zip.file(`resourcepack/pack.mcmeta`, meta);
-    zip.file(`datapack/pack.mcmeta`, meta);
 
-    zip.file(`datapack/data/${namespace}/desktop/${id}.json`, await CreateDesktopJson());
+    const datapack = new JSZip();
+
+    datapack.file(`data/${namespace}/structures/interiors/${id}.nbt`, nbtFile);
+    datapack.file(`pack.mcmeta`, meta);
+    datapack.file(`data/${namespace}/desktop/${id}.json`, await CreateDesktopJson());
+
+
+    const resourcepack = new JSZip();
+    resourcepack.file(`assets/${namespace}/textures/desktop/${id}.png`, pngFileInput);
+    resourcepack.file(`pack.mcmeta`, meta);
+
 
     // Generate the zip and initiate download
-    const blob = await zip.generateAsync({ type: "blob" });
-    saveAs(blob, `${namespace}_${id}_pack.zip`);
+    saveAs(await datapack.generateAsync({ type: "blob" }), `${namespace}_${id}_data_pack.zip`);
+    saveAs(await resourcepack.generateAsync({ type: "blob" }), `${namespace}_${id}_resource_pack.zip`);
 }
