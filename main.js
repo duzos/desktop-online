@@ -16,7 +16,7 @@ async function CreateDesktopJson(namespace, id) {
 async function createZip() {
     const namespace = document.getElementById('namespace').value;
     const id = document.getElementById('id').value;
-    const pngFileInput = document.getElementById('pngFile').files[0];
+    var pngFileInput = document.getElementById('pngFile').files[0];
     const nbtFile = document.getElementById('nbtFile').files[0];
 
     if (!namespace || !id || !nbtFile) {
