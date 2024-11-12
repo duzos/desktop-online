@@ -37,7 +37,7 @@ async function createZip() {
 
     datapack.file(`data/${namespace}/structures/interiors/${id}.nbt`, nbtFile);
     datapack.file(`pack.mcmeta`, meta);
-    datapack.file(`data/${namespace}/desktop/${id}.json`, await CreateDesktopJson());
+    datapack.file(`data/${namespace}/desktop/${id}.json`, await CreateDesktopJson(namespace, id));
 
 
     const resourcepack = new JSZip();
