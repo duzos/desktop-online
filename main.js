@@ -12,12 +12,29 @@ async function CreateDesktopJson(namespace, id) {
         "id": namespace + ":" + id
     }, null, 2);
 }
+async function CreateLanguageJson(namespace, id, name) {
+    const path = `desktop.${namespace}.${id}`;
+
+    return JSON.stringify({
+        [path]: name
+    }, null, 2);
+}
+function formatAndCapitalize(input) {
+    return input
+        .split('_')
+        .map(word => 
+            word.charAt(0).toUpperCase() + word.slice(1) 
+        )
+        .join(' ');
+}
+
 
 async function createZip() {
     const namespace = document.getElementById('namespace').value;
     const id = document.getElementById('id').value;
     var pngFileInput = document.getElementById('pngFile').files[0];
     const nbtFile = document.getElementById('nbtFile').files[0];
+    var name = document.getElementById('langName').value;
 
     if (!namespace || !id || !nbtFile) {
         alert("Please fill in all fields and select both files.");
@@ -30,8 +47,14 @@ async function createZip() {
         pngFileInput = await defaultIconResponse.blob();
     }
 
+    if (!name) {
+        name = formatAndCapitalize(id);
+    }
+
     // Create a new JSZip instance
     const meta = await CreateMcMeta();
+
+    const zip = new JSZip();
 
     const datapack = new JSZip();
 
@@ -39,13 +62,15 @@ async function createZip() {
     datapack.file(`pack.mcmeta`, meta);
     datapack.file(`data/${namespace}/desktop/${id}.json`, await CreateDesktopJson());
 
+    zip.file(`${namespace}_${id}_data_pack.zip`, await datapack.generateAsync({ type: "blob"}));
 
     const resourcepack = new JSZip();
     resourcepack.file(`assets/${namespace}/textures/desktop/${id}.png`, pngFileInput);
     resourcepack.file(`pack.mcmeta`, meta);
+    resourcepack.file(`assets/${namespace}/lang/en_us.json`, await CreateLanguageJson(namespace, id, name))
 
+    zip.file(`${namespace}_${id}_resource_pack.zip`, await resourcepack.generateAsync({ type: "blob"}));
 
     // Generate the zip and initiate download
-    saveAs(await datapack.generateAsync({ type: "blob" }), `${namespace}_${id}_data_pack.zip`);
-    saveAs(await resourcepack.generateAsync({ type: "blob" }), `${namespace}_${id}_resource_pack.zip`);
+    saveAs(await zip.generateAsync({ type: "blob" }), `${namespace}_${id}_pack.zip`);
 }
