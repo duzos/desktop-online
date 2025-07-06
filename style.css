@@ -1,0 +1,72 @@
+/* General page styling */
+body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+    font-family: Arial, sans-serif; /* Default font */
+    background-color: #e6f0ff; /* Soft blue background */
+    color: #333; /* Darker text for readability */
+}
+
+/* Center container styling */
+#packFormContainer {
+    background-color: #f0f8ff; /* Light blue background for form */
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
+    text-align: center;
+    max-width: 400px;
+    width: 100%;
+}
+
+/* Form label and input styling */
+label {
+    display: block;
+    margin: 15px 0 5px;
+    font-size: 1.1em;
+}
+input[type="text"],
+input[type="file"] {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #a0c4ff;
+    margin-bottom: 10px;
+    font-size: 1em;
+    background-color: #fff;
+}
+
+/* Create ZIP button styling */
+button {
+    background-color: #4CAF50; /* Green color */
+    color: white;
+    padding: 15px 30px;
+    font-size: 1.2em;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+button:hover {
+    background-color: #45a049; /* Darker green on hover */
+}
+
+a {
+    color: #2d76a2;
+    text-decoration: none;
+    font-weight: bold;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: background-color 0.3s;
+}
+a:hover {
+    background-color: #d0e6f9;
+}
+h2.optional-header {
+    font-size: 1.2em;
+    color: #2d76a2;
+    margin-top: 20px;
+}

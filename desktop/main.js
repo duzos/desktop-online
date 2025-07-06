@@ -2,13 +2,13 @@ async function CreateMcMeta() {
     return JSON.stringify({
         "pack": {
             "pack_format": 15,
-            "description": "made with duzos desktop generator"
+            "description": "made with duzos ait generator"
         }
     }, null, 2);  // Format with 2 spaces for readability
 }
 async function CreateDesktopJson(namespace, id) {
     return JSON.stringify({
-        "watermark": "made with duzos desktop generator",
+        "watermark": "made with duzos ait generator",
         "id": namespace + ":" + id
     }, null, 2);
 }

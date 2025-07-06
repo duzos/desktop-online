@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="uk">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>duzo desktop generator</title>
+        <link rel="icon" href="../assets/icon.ico">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="../style.css">
+    </head>
+    <body>
+        <div id="packFormContainer">
+            <h1 style="font-family: 'Verdana', sans-serif; font-weight: bold; color: #2d76a2;"><a href="https://amblelabs.github.io/ait-wiki/datapacks/exteriors/">Datapack Exterior</a></h1>
+
+            <form id="packForm">
+                <label for="namespace">Namespace</label>
+                <input type="text" id="namespace" name="namespace" required><br><br>
+        
+                <label for="id">ID</label>
+                <input type="text" id="id" name="id" required><br><br>
+
+                <label for="parent">Parent</label>
+                <select id="parent" name="parent" required onchange="toggleOtherParent()">
+                    <option value="">--Select Category--</option>
+                    <option value="police_box/default">Police Box</option>
+                    <option value="police_box/coral">Coral Box</option>
+                    <option value="police_box/renaissance">Renaissance Box</option>
+                    <option value="classic/prime">Classic Police Box</option>
+                    <option value="classic/hudolin">Hudolin Box</option>
+                    <option value="booth/default">K2 Phone Booth</option>
+                    <option value="capsule/default">TT Capsule</option>
+                    <option value="easter_head/default">Moyai</option>
+                    <option value="plinth/default">Plinth</option>
+                    <option value="tardim/default">TARDIM</option>
+                    <option value="siege_mode/default">Siege Mode</option>
+                    <option value="other">Other</option>
+                </select>
+                <input type="text" id="otherParent" name="otherParent" placeholder="Enter custom parent" style="display:none; margin-top:8px;"><br><br>
+
+                <label for="texture">Texture</label>
+                <input type="file" id="texture" accept=".png"><br><br>
+
+                <h2 class="optional-header">Optional</h2>
+                <label for="emission">Emission</label>
+                <input type="file" id="emission" accept=".png"><br><br>
+
+                <label for="category">Own Category</label>
+                <input type="text" id="category" name="category" placeholder="Enter custom category" style="margin-top:8px;"><br><br>
+
+                <label for="langName">Name</label>
+                <input type="text" id="langName" name="langName"><br><br>
+
+                <button type="button" onclick="createZip()">Create</button>
+            </form>
+        </div>
+        <script>
+            function toggleOtherParent() {
+                const category = document.getElementById('parent');
+                const otherInput = document.getElementById('otherParent');
+                if (category.value === 'other') {
+                    otherInput.style.display = 'inline-block';
+                    otherInput.required = true;
+                } else {
+                    otherInput.style.display = 'none';
+                    otherInput.required = false;
+                }
+            }
+        </script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+        <script src="./main.js"></script>
+    </body>
+</html>
