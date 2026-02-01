@@ -334,14 +334,17 @@ const ExportManager = (function() {
         const files = item.files || {};
         const results = { data: {}, assets: {}, lang: {} };
 
+        // State names for sonic
+        const states = ['inactive', 'interaction', 'overload', 'scanning', 'tardis'];
+
         const sonicJson = {
             id: `${namespace}:${data.id}`,
             models: {
-                inactive: `${namespace}:item/sonic/${data.id}`,
-                interaction: `${namespace}:item/sonic/${data.id}`,
-                overload: `${namespace}:item/sonic/${data.id}`,
-                scanning: `${namespace}:item/sonic/${data.id}`,
-                tardis: `${namespace}:item/sonic/${data.id}`
+                inactive: `${namespace}:item/sonic/${data.id}/inactive`,
+                interaction: `${namespace}:item/sonic/${data.id}/interaction`,
+                overload: `${namespace}:item/sonic/${data.id}/overload`,
+                scanning: `${namespace}:item/sonic/${data.id}/scanning`,
+                tardis: `${namespace}:item/sonic/${data.id}/tardis`
             },
             loyalty: {
                 type: data.loyalty || 'NEUTRAL'
@@ -350,12 +353,32 @@ const ExportManager = (function() {
 
         results.data[`data/${namespace}/sonic/${data.id}.json`] = JSON.stringify(sonicJson, null, 2);
 
-        // Add model file if provided
+        // Add base model file if provided
         if (files.model) {
             results.assets[`assets/${namespace}/models/item/sonic/${data.id}.json`] = files.model;
         }
-        if (files.texture) {
-            results.assets[`assets/${namespace}/textures/item/sonic/${data.id}.png`] = files.texture;
+
+        // Create state-specific model files that reference the base model
+        // and add state-specific textures
+        for (const state of states) {
+            const textureKey = `texture${state.charAt(0).toUpperCase() + state.slice(1)}`;
+            const hasTexture = files[textureKey];
+
+            // Create state model JSON that references the parent model
+            const stateModelJson = {
+                parent: `${namespace}:item/sonic/${data.id}`,
+                textures: {
+                    "0": `${namespace}:item/sonic_tools/${data.id}_${state}`
+                }
+            };
+
+            results.assets[`assets/${namespace}/models/item/sonic/${data.id}/${state}.json`] =
+                JSON.stringify(stateModelJson, null, 2);
+
+            // Add state-specific texture if provided
+            if (hasTexture) {
+                results.assets[`assets/${namespace}/textures/item/sonic_tools/${data.id}_${state}.png`] = hasTexture;
+            }
         }
 
         const langKey = `sonic.${namespace}.${data.id}`;

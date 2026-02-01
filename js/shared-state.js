@@ -12,8 +12,12 @@ const SharedState = (function() {
         packStack: [],
         customCategories: [],
         customConsoles: [],
-        customExteriors: []
+        customExteriors: [],
+        githubBranch: 'main'
     };
+
+    // GitHub model cache to avoid redundant fetches
+    const githubModelCache = new Map();
 
     // Event listeners
     const listeners = {
@@ -52,6 +56,23 @@ const SharedState = (function() {
 
         onNamespaceChange(callback) {
             listeners.namespaceChange.push(callback);
+        },
+
+        // GitHub branch management
+        getGitHubBranch() {
+            return state.githubBranch;
+        },
+
+        setGitHubBranch(branch) {
+            state.githubBranch = branch || 'main';
+            // Clear cache when branch changes
+            githubModelCache.clear();
+            this.saveToLocalStorage();
+        },
+
+        // GitHub model cache
+        getGitHubModelCache() {
+            return githubModelCache;
         },
 
         // Stack management
@@ -191,6 +212,7 @@ const SharedState = (function() {
                 // We can't store File objects, so we only store metadata
                 const saveData = {
                     namespace: state.namespace,
+                    githubBranch: state.githubBranch,
                     packStack: state.packStack.map(item => ({
                         ...item,
                         files: Object.keys(item.files).reduce((acc, key) => {
@@ -214,6 +236,7 @@ const SharedState = (function() {
                 if (saved) {
                     const data = JSON.parse(saved);
                     state.namespace = data.namespace || '';
+                    state.githubBranch = data.githubBranch || 'main';
                     state.customCategories = data.customCategories || [];
                     state.customConsoles = data.customConsoles || [];
                     state.customExteriors = data.customExteriors || [];

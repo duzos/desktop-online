@@ -139,6 +139,92 @@ const ToolManager = (function() {
         { value: 'ait:exterior/siege_mode', name: 'Siege Mode' }
     ];
 
+    // GitHub paths for default models (paths relative to src/main/resources/assets/ait/bedrock/)
+    const GITHUB_MODEL_PATHS = {
+        // Exterior models
+        'ait:exterior/tardim/default': {
+            geo: 'tardim.geo.json',
+            type: 'exterior'
+        },
+        'ait:exterior/police_box/default': {
+            geo: 'exterior/police_box.geo.json',
+            type: 'exterior'
+        },
+        'ait:exterior/police_box/coral': {
+            geo: 'exterior/police_box.geo.json',
+            type: 'exterior'
+        },
+        'ait:exterior/police_box/renaissance': {
+            geo: 'exterior/police_box.geo.json',
+            type: 'exterior'
+        },
+        'ait:exterior/classic/prime': {
+            geo: 'exterior/classic.geo.json',
+            type: 'exterior'
+        },
+        'ait:exterior/classic/hudolin': {
+            geo: 'exterior/classic.geo.json',
+            type: 'exterior'
+        },
+        'ait:exterior/booth/default': {
+            geo: 'exterior/booth.geo.json',
+            type: 'exterior'
+        },
+        'ait:exterior/capsule/default': {
+            geo: 'exterior/capsule.geo.json',
+            type: 'exterior'
+        },
+        'ait:exterior/easter_head/default': {
+            geo: 'exterior/easter_head.geo.json',
+            type: 'exterior'
+        },
+        'ait:exterior/plinth/default': {
+            geo: 'exterior/plinth.geo.json',
+            type: 'exterior'
+        },
+        'ait:exterior/siege_mode/default': {
+            geo: 'exterior/siege_mode.geo.json',
+            type: 'exterior'
+        },
+        // Console models
+        'ait:console/coral': {
+            geo: 'coral.geo.json',
+            type: 'console'
+        },
+        'ait:console/hartnell': {
+            geo: 'hartnell.geo.json',
+            type: 'console'
+        },
+        'ait:console/copper': {
+            geo: 'copper.geo.json',
+            type: 'console'
+        },
+        'ait:console/toyota': {
+            geo: 'toyota.geo.json',
+            type: 'console'
+        },
+        'ait:console/alnico': {
+            geo: 'alnico.geo.json',
+            type: 'console'
+        },
+        'ait:console/steam': {
+            geo: 'steam.geo.json',
+            type: 'console'
+        },
+        'ait:console/hudolin': {
+            geo: 'hudolin.geo.json',
+            type: 'console'
+        },
+        'ait:console/crystaline': {
+            geo: 'crystalline.geo.json',
+            type: 'console'
+        },
+        'ait:console/renaissance': {
+            geo: 'tokamak.geo.json',
+            type: 'console'
+        }
+    };
+
     // Loyalty types for sonics
     const LOYALTY_TYPES = ['OWNER', 'PILOT', 'COMPANION', 'NEUTRAL', 'REJECT'];
 
@@ -202,7 +288,7 @@ const ToolManager = (function() {
         const isEditing = editingItemId !== null;
 
         // Check if this tool type supports 3D preview AND if it's enabled
-        const supportsPreview = ['console-model', 'exterior-model', 'console-variant', 'exterior'].includes(type);
+        const supportsPreview = ['console-model', 'exterior-model', 'console-variant', 'exterior', 'sonic'].includes(type);
         const hasPreview = supportsPreview && typeof is3DPreviewEnabled === 'function' && is3DPreviewEnabled();
 
         let formHtml = `
@@ -284,6 +370,7 @@ const ToolManager = (function() {
 
         // Add preview panel if applicable
         if (hasPreview) {
+            const isItemModel = type === 'sonic';
             formHtml += `</div>
                 <div class="model-preview-panel">
                     <h3><i class="fa-solid fa-eye"></i> 3D Preview</h3>
@@ -294,6 +381,24 @@ const ToolManager = (function() {
                         </div>
                     </div>
                     <div class="preview-controls">
+                        ${isItemModel ? `
+                        <div class="display-transform-control">
+                            <label for="displayTransformSelect">View:</label>
+                            <select id="displayTransformSelect" onchange="ModelPreview.setDisplayTransform(this.value)">
+                                <option value="none">None (Default)</option>
+                            </select>
+                        </div>
+                        <div class="display-transform-control">
+                            <label for="sonicStateSelect">State:</label>
+                            <select id="sonicStateSelect" onchange="ToolManager.previewSonicState(this.value)">
+                                <option value="inactive">Inactive</option>
+                                <option value="interaction">Interaction</option>
+                                <option value="overload">Overload</option>
+                                <option value="scanning">Scanning</option>
+                                <option value="tardis">TARDIS</option>
+                            </select>
+                        </div>
+                        ` : ''}
                         <button type="button" class="btn btn-small" onclick="ModelPreview.setAutoRotate(!ModelPreview.getAutoRotate()); this.innerHTML = ModelPreview.getAutoRotate() ? '<i class=\\'fa-solid fa-pause\\'></i> Pause' : '<i class=\\'fa-solid fa-rotate\\'></i> Rotate'">
                             <i class="fa-solid fa-pause"></i> Pause
                         </button>
@@ -741,8 +846,17 @@ const ToolManager = (function() {
                     ${loyaltyOptions}
                 </select>
             </div>
-            ${renderFileInput('model', 'model', 'Model File (.json)', '.json', false, isEditing, existingFiles)}
-            ${renderFileInput('texture', 'texture', 'Texture', '.png', false, isEditing, existingFiles)}
+            ${renderFileInput('model', 'model', 'Base Model File (.json)', '.json', false, isEditing, existingFiles, 'The main geometry model for the sonic')}
+            
+            <div class="form-section">
+                <h3><i class="fa-solid fa-palette"></i> State Textures</h3>
+                <p class="form-hint">Each sonic state can have a different texture. All textures will use the same base model.</p>
+                ${renderFileInput('textureInactive', 'textureInactive', 'Inactive Texture', '.png', false, isEditing, existingFiles, 'When the sonic is not in use')}
+                ${renderFileInput('textureInteraction', 'textureInteraction', 'Interaction Texture', '.png', false, isEditing, existingFiles, 'When interacting with blocks/entities')}
+                ${renderFileInput('textureOverload', 'textureOverload', 'Overload Texture', '.png', false, isEditing, existingFiles, 'When the sonic is overloaded')}
+                ${renderFileInput('textureScanning', 'textureScanning', 'Scanning Texture', '.png', false, isEditing, existingFiles, 'When scanning')}
+                ${renderFileInput('textureTardis', 'textureTardis', 'TARDIS Texture', '.png', false, isEditing, existingFiles, 'When linked to a TARDIS')}
+            </div>
         `;
     }
 
@@ -1096,6 +1210,29 @@ const ToolManager = (function() {
             textureInput?.addEventListener('change', handleTextureUploadForPreview);
             doorGeo?.addEventListener('change', (e) => handleExteriorGeoUpload(e, 'door'));
             doorAnimations?.addEventListener('change', handleExteriorAnimationUpload);
+        }
+
+        // Handle file uploads for sonic
+        if (type === 'sonic') {
+            const modelInput = document.getElementById('model');
+
+            // All state texture inputs
+            const textureInactive = document.getElementById('textureInactive');
+            const textureInteraction = document.getElementById('textureInteraction');
+            const textureOverload = document.getElementById('textureOverload');
+            const textureScanning = document.getElementById('textureScanning');
+            const textureTardis = document.getElementById('textureTardis');
+
+            modelInput?.addEventListener('change', handleSonicModelUpload);
+
+            // Use inactive texture for preview by default
+            textureInactive?.addEventListener('change', handleSonicTextureUpload);
+
+            // Other textures don't update preview but could be previewed on demand
+            textureInteraction?.addEventListener('change', (e) => handleSonicStateTextureUpload(e, 'interaction'));
+            textureOverload?.addEventListener('change', (e) => handleSonicStateTextureUpload(e, 'overload'));
+            textureScanning?.addEventListener('change', (e) => handleSonicStateTextureUpload(e, 'scanning'));
+            textureTardis?.addEventListener('change', (e) => handleSonicStateTextureUpload(e, 'tardis'));
         }
     }
 
@@ -1534,10 +1671,45 @@ const ToolManager = (function() {
     }
 
     /**
+     * Fetch model from GitHub repository
+     */
+    async function fetchModelFromGitHub(modelPath) {
+        const branch = SharedState.getGitHubBranch();
+        const cache = SharedState.getGitHubModelCache();
+        const cacheKey = `${branch}:${modelPath}`;
+
+        // Check cache first
+        if (cache.has(cacheKey)) {
+            return cache.get(cacheKey);
+        }
+
+        const baseUrl = `https://raw.githubusercontent.com/amblelabs/ait/${branch}/src/main/resources/assets/ait/bedrock/`;
+        const url = baseUrl + modelPath;
+
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`Failed to fetch: ${response.status}`);
+            }
+            const geoJson = await response.json();
+            cache.set(cacheKey, geoJson);
+            return geoJson;
+        } catch (error) {
+            console.warn(`Could not fetch model from GitHub: ${url}`, error);
+            return null;
+        }
+    }
+
+    /**
      * Load custom parent model geometry for variant preview
      */
     async function loadCustomParentModelForPreview(parentValue, modelType) {
         if (!parentValue || typeof ModelPreview === 'undefined' || !ModelPreview.isAvailable()) {
+            return;
+        }
+
+        // Check if 3D preview is enabled
+        if (typeof is3DPreviewEnabled === 'function' && !is3DPreviewEnabled()) {
             return;
         }
 
@@ -1585,14 +1757,40 @@ const ToolManager = (function() {
 
                     ModelPreview.loadGeometry(geoJson, textureUrl);
                     Utils.showToast('Loaded custom model for preview', 'info');
+                    return;
                 }
             } catch (error) {
                 console.error('Error loading custom parent model:', error);
             }
-        } else {
-            // Not a custom model - clear the preview or show placeholder
-            ModelPreview.clear();
         }
+
+        // Check if this is a default model we can fetch from GitHub
+        const githubModelInfo = GITHUB_MODEL_PATHS[parentValue];
+        if (githubModelInfo) {
+            try {
+                Utils.showToast('Loading model from GitHub...', 'info');
+                const geoJson = await fetchModelFromGitHub(githubModelInfo.geo);
+
+                if (geoJson) {
+                    // Get texture if available
+                    let textureUrl = null;
+                    const textureInput = document.getElementById('texture');
+                    if (textureInput?.files[0]) {
+                        textureUrl = await readFileAsDataUrl(textureInput.files[0]);
+                    }
+
+                    ModelPreview.loadGeometry(geoJson, textureUrl);
+                    Utils.showToast('Model loaded from GitHub', 'success');
+                    return;
+                }
+            } catch (error) {
+                console.error('Error fetching model from GitHub:', error);
+                Utils.showToast('Could not load model from GitHub', 'error');
+            }
+        }
+
+        // Not a custom model or GitHub model - clear the preview
+        ModelPreview.clear();
     }
 
     /**
@@ -1622,6 +1820,82 @@ const ToolManager = (function() {
                 console.error('Error updating texture preview:', error);
             }
         }
+    }
+
+    /**
+     * Handle sonic model file upload (.json) for 3D preview
+     */
+    async function handleSonicModelUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        try {
+            Utils.showToast('Processing model...', 'info');
+
+            const content = await Utils.readFileAsText(file);
+            const modelJson = JSON.parse(content);
+
+            // Validate it's an item model (has elements array)
+            if (!modelJson.elements || !Array.isArray(modelJson.elements)) {
+                Utils.showToast('Invalid item model format - missing elements array', 'error');
+                return;
+            }
+
+            // Update 3D preview
+            if (typeof ModelPreview !== 'undefined' && ModelPreview.isAvailable()) {
+                // Get inactive texture if available (used for preview)
+                const textureInput = document.getElementById('textureInactive');
+                let textureUrl = null;
+                if (textureInput?.files[0]) {
+                    textureUrl = await readFileAsDataUrl(textureInput.files[0]);
+                }
+                ModelPreview.loadJavaItemModel(modelJson, textureUrl);
+            }
+
+            Utils.showToast('Model loaded!', 'success');
+        } catch (error) {
+            console.error('Error processing item model:', error);
+            Utils.showToast('Failed to process model: ' + error.message, 'error');
+        }
+    }
+
+    /**
+     * Handle sonic inactive texture upload and update 3D preview
+     */
+    async function handleSonicTextureUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        if (typeof ModelPreview !== 'undefined' && ModelPreview.isAvailable()) {
+            try {
+                const textureUrl = await readFileAsDataUrl(file);
+
+                // Check if we have a model loaded - if so, reload with new texture
+                const modelInput = document.getElementById('model');
+                if (modelInput?.files[0]) {
+                    const content = await Utils.readFileAsText(modelInput.files[0]);
+                    const modelJson = JSON.parse(content);
+                    ModelPreview.loadJavaItemModel(modelJson, textureUrl);
+                } else {
+                    ModelPreview.updateTexture(textureUrl);
+                }
+            } catch (error) {
+                console.error('Error updating texture preview:', error);
+            }
+        }
+    }
+
+    /**
+     * Handle sonic state texture upload (other than inactive)
+     * Can optionally preview the state texture
+     */
+    async function handleSonicStateTextureUpload(event, stateName) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        // Just confirm the file was uploaded - these don't update the main preview
+        // but could be previewed on demand in the future
+        Utils.showToast(`${stateName.charAt(0).toUpperCase() + stateName.slice(1)} texture uploaded!`, 'success');
     }
 
     /**
@@ -2084,6 +2358,36 @@ const ToolManager = (function() {
         list.appendChild(div);
     }
 
+    /**
+     * Preview a specific sonic state texture in the 3D preview
+     */
+    async function previewSonicState(stateName) {
+        if (typeof ModelPreview === 'undefined' || !ModelPreview.isAvailable()) return;
+
+        const textureKey = `texture${stateName.charAt(0).toUpperCase() + stateName.slice(1)}`;
+        const textureInput = document.getElementById(textureKey);
+        const modelInput = document.getElementById('model');
+
+        if (!modelInput?.files[0]) {
+            Utils.showToast('Upload a model first', 'warning');
+            return;
+        }
+
+        try {
+            const content = await Utils.readFileAsText(modelInput.files[0]);
+            const modelJson = JSON.parse(content);
+
+            let textureUrl = null;
+            if (textureInput?.files[0]) {
+                textureUrl = await readFileAsDataUrl(textureInput.files[0]);
+            }
+
+            ModelPreview.loadJavaItemModel(modelJson, textureUrl);
+        } catch (error) {
+            console.error('Error previewing sonic state:', error);
+        }
+    }
+
     return {
         TOOLS,
         CONSOLE_PARENTS,
@@ -2100,7 +2404,8 @@ const ToolManager = (function() {
         removeItem,
         updateStackUI,
         addFabricatorInput,
-        addPotionEffect
+        addPotionEffect,
+        previewSonicState
     };
 })();
 

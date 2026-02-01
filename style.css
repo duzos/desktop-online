@@ -158,11 +158,12 @@ a:hover {
 
 .namespace-input {
     display: flex;
+    flex-direction: column;
     gap: 0.5rem;
 }
 
 .namespace-input input {
-    flex: 1;
+    width: 100%;
     padding: 0.6rem 0.8rem;
     background: rgba(0, 0, 0, 0.3);
     border: 1px solid rgba(74, 222, 128, 0.3);
@@ -253,6 +254,218 @@ a:hover {
 
 .toggle-switch input:checked ~ .toggle-label {
     color: var(--important-colour);
+}
+
+/* Help Icon with Tooltip */
+.help-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    margin-left: 0.25rem;
+    color: var(--text-muted);
+    cursor: help;
+    transition: color var(--transition-fast);
+    vertical-align: middle;
+    position: relative;
+}
+
+.help-icon:hover {
+    color: var(--important-colour);
+}
+
+.help-icon i {
+    font-size: 0.75rem;
+}
+
+/* Tooltip container - created by JavaScript */
+.tooltip-popup {
+    position: fixed;
+    padding: 0.6rem 0.8rem;
+    background: rgba(10, 10, 20, 0.98);
+    border: 1px solid var(--border-colour);
+    border-radius: 8px;
+    color: var(--text-colour);
+    font-size: 0.75rem;
+    font-weight: normal;
+    line-height: 1.4;
+    white-space: normal;
+    width: 240px;
+    text-align: left;
+    z-index: 99999;
+    pointer-events: none;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6), 0 0 1px rgba(74, 222, 128, 0.5);
+    animation: tooltipFadeIn 0.15s ease-out;
+}
+
+@keyframes tooltipFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Hide the CSS-only tooltip since we're using JS */
+.help-icon[data-tooltip]::after {
+    display: none;
+}
+
+/* Pack Note Warning */
+.pack-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    padding: 0.75rem;
+    margin-bottom: 0.75rem;
+    background: rgba(251, 191, 36, 0.1);
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    border-radius: 8px;
+    font-size: 0.8rem;
+    color: #fbbf24;
+    line-height: 1.4;
+}
+
+.pack-note i {
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+}
+
+.pack-note strong {
+    color: #fcd34d;
+}
+
+/* Namespace Input Label - Bigger and Bolder */
+.namespace-input label {
+    display: flex;
+    align-items: center;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-colour);
+    margin-bottom: 0.5rem;
+}
+
+/* Collapsible Settings Dropdown */
+.settings-dropdown {
+    margin-top: 0.75rem;
+    border: 1px solid rgba(74, 222, 128, 0.15);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.settings-dropdown summary {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 0.75rem;
+    background: rgba(0, 0, 0, 0.2);
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    cursor: pointer;
+    user-select: none;
+    transition: all var(--transition-fast);
+    list-style: none;
+}
+
+.settings-dropdown summary::-webkit-details-marker {
+    display: none;
+}
+
+.settings-dropdown summary:hover {
+    background: rgba(0, 0, 0, 0.3);
+    color: var(--text-colour);
+}
+
+.settings-dropdown[open] summary {
+    border-bottom: 1px solid rgba(74, 222, 128, 0.15);
+}
+
+.settings-dropdown .dropdown-arrow {
+    margin-left: auto;
+    font-size: 0.7rem;
+    transition: transform var(--transition-fast);
+}
+
+.settings-dropdown[open] .dropdown-arrow {
+    transform: rotate(180deg);
+}
+
+.settings-content {
+    padding: 0.75rem;
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.settings-content .experimental-toggle {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+}
+
+/* GitHub Branch Setting */
+.github-branch-setting {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid rgba(74, 222, 128, 0.15);
+}
+
+.github-branch-setting label {
+    display: flex;
+    align-items: center;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-bottom: 0.4rem;
+}
+
+.github-branch-setting label i.fa-github {
+    margin-right: 0.35rem;
+}
+
+.github-branch-setting select {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(74, 222, 128, 0.2);
+    border-radius: 6px;
+    color: var(--text-colour);
+    font-size: 0.85rem;
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+    transition: all var(--transition-normal);
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%234ade80'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.5rem center;
+    background-size: 1.2rem;
+    padding-right: 2rem;
+}
+
+.github-branch-setting select:focus {
+    outline: none;
+    border-color: var(--important-colour);
+    box-shadow: 0 0 8px var(--border-glow);
+}
+
+.github-branch-setting select option {
+    background: var(--bg-colour);
+    color: var(--text-colour);
+    padding: 0.5rem;
+}
+
+.branch-loading {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 0.4rem;
+}
+
+.branch-loading.hidden {
+    display: none;
 }
 
 /* Stack Section */
@@ -1023,11 +1236,48 @@ a:hover {
     display: flex;
     gap: 0.5rem;
     flex-wrap: wrap;
+    align-items: center;
 }
 
 .preview-controls .btn {
     padding: 0.4rem 0.75rem;
     font-size: 0.8rem;
+}
+
+.display-transform-control {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1 1 auto;
+    min-width: 140px;
+}
+
+.display-transform-control label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.display-transform-control select {
+    flex: 1;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.8rem;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-colour);
+    border-radius: var(--border-radius);
+    color: var(--text-colour);
+    cursor: pointer;
+    min-width: 80px;
+}
+
+.display-transform-control select:hover {
+    border-color: var(--important-colour);
+}
+
+.display-transform-control select:focus {
+    outline: none;
+    border-color: var(--important-colour);
+    box-shadow: 0 0 0 2px rgba(74, 222, 128, 0.2);
 }
 
 .preview-loading,
@@ -1075,5 +1325,188 @@ a:hover {
 
 .form-content {
     min-width: 0;
+}
+
+/* Export Confirmation Modal */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-container {
+    background: linear-gradient(135deg, var(--bg-colour) 0%, rgba(26, 26, 46, 0.98) 100%);
+    border: 1px solid var(--border-colour);
+    border-radius: 20px;
+    padding: 2rem;
+    max-width: 500px;
+    width: 90%;
+    text-align: center;
+    transform: scale(0.9) translateY(20px);
+    transition: transform 0.3s ease;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 40px var(--border-glow);
+}
+
+.modal-overlay.active .modal-container {
+    transform: scale(1) translateY(0);
+}
+
+.modal-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 1.5rem;
+    background: rgba(251, 191, 36, 0.15);
+    border: 2px solid rgba(251, 191, 36, 0.4);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: pulse-warning 2s ease-in-out infinite;
+}
+
+@keyframes pulse-warning {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 20px 10px rgba(251, 191, 36, 0.1);
+    }
+}
+
+.modal-icon i {
+    font-size: 2.5rem;
+    color: #fbbf24;
+}
+
+.modal-title {
+    color: var(--text-colour);
+    font-size: 1.5rem;
+    margin: 0 0 1rem;
+    font-weight: 600;
+}
+
+.modal-content {
+    margin-bottom: 1.5rem;
+}
+
+.modal-content > p {
+    color: var(--text-muted);
+    margin: 0 0 1rem;
+    font-size: 0.95rem;
+}
+
+.modal-content strong {
+    color: var(--text-colour);
+}
+
+.modal-warning {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    background: rgba(74, 222, 128, 0.08);
+    border: 1px solid rgba(74, 222, 128, 0.25);
+    border-radius: 12px;
+    padding: 1.25rem;
+    text-align: left;
+}
+
+.modal-warning > i {
+    font-size: 1.5rem;
+    color: var(--important-colour);
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+}
+
+.modal-warning p {
+    margin: 0 0 0.75rem;
+    color: var(--text-colour);
+    font-size: 0.9rem;
+}
+
+.modal-warning ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 0.75rem;
+}
+
+.modal-warning li {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.4rem 0;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.modal-warning li i {
+    color: var(--important-colour);
+    width: 18px;
+    text-align: center;
+}
+
+.modal-warning li strong {
+    color: var(--text-colour);
+}
+
+.modal-note {
+    font-size: 0.8rem !important;
+    color: var(--important-colour) !important;
+    font-style: italic;
+    margin-bottom: 0 !important;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.modal-actions .btn {
+    min-width: 140px;
+    padding: 0.75rem 1.5rem;
+    font-size: 0.95rem;
+}
+
+@media (max-width: 500px) {
+    .modal-container {
+        padding: 1.5rem;
+    }
+
+    .modal-icon {
+        width: 60px;
+        height: 60px;
+    }
+
+    .modal-icon i {
+        font-size: 1.8rem;
+    }
+
+    .modal-title {
+        font-size: 1.25rem;
+    }
+
+    .modal-actions {
+        flex-direction: column;
+    }
+
+    .modal-actions .btn {
+        width: 100%;
+    }
 }
 

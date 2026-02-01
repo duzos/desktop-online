@@ -37,17 +37,53 @@
         <aside class="sidebar">
             <div class="sidebar-header">
                 <h2><i class="fa-solid fa-box"></i> Pack Settings</h2>
+
                 <div class="namespace-input">
+                    <label for="namespaceInput">
+                        Namespace
+                        <span class="help-icon" data-tooltip="Your pack's unique identifier. Used in all file paths and references. Use only lowercase letters, numbers, and underscores (e.g., my_tardis_pack)">
+                            <i class="fa-solid fa-circle-question"></i>
+                        </span>
+                    </label>
                     <input type="text" id="namespaceInput" placeholder="my_pack"
                         pattern="[a-z0-9_]+" title="Lowercase letters, numbers, and underscores only">
                 </div>
-                <div class="experimental-toggle">
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="enable3DPreview" onchange="toggle3DPreview(this.checked)">
-                        <span class="toggle-slider"></span>
-                        <span class="toggle-label">3D Preview (Experimental)</span>
-                    </label>
-                </div>
+
+                <!-- Collapsible Advanced Settings -->
+                <details class="settings-dropdown">
+                    <summary>
+                        <i class="fa-solid fa-gear"></i> Advanced Settings
+                        <i class="fa-solid fa-chevron-down dropdown-arrow"></i>
+                    </summary>
+                    <div class="settings-content">
+                        <div class="experimental-toggle">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="enable3DPreview" onchange="toggle3DPreview(this.checked)">
+                                <span class="toggle-slider"></span>
+                                <span class="toggle-label">
+                                    3D Preview
+                                    <span class="help-icon" data-tooltip="Enable experimental 3D model preview when creating exteriors or consoles. Shows a rotating preview of your model with textures.">
+                                        <i class="fa-solid fa-circle-question"></i>
+                                    </span>
+                                </span>
+                            </label>
+                        </div>
+                        <div class="github-branch-setting">
+                            <label for="githubBranch">
+                                <i class="fa-brands fa-github"></i> AIT Branch
+                                <span class="help-icon" data-tooltip="Select the AIT GitHub branch to fetch default model files from for 3D preview. Use 'main' for stable releases or other branches for development versions.">
+                                    <i class="fa-solid fa-circle-question"></i>
+                                </span>
+                            </label>
+                            <select id="githubBranch">
+                                <option value="main">main</option>
+                            </select>
+                            <span class="branch-loading hidden" id="branchLoading">
+                                <i class="fa-solid fa-spinner fa-spin"></i> Loading branches...
+                            </span>
+                        </div>
+                    </div>
+                </details>
             </div>
 
             <div class="stack-section">
@@ -63,7 +99,7 @@
             </div>
 
             <div class="sidebar-footer">
-                <button class="btn btn-primary" id="exportBtn" onclick="ExportManager.exportPack()">
+                <button class="btn btn-primary" id="exportBtn" onclick="showExportConfirmation()">
                     <i class="fa-solid fa-download"></i> Export Pack
                 </button>
                 <div class="btn-row">
@@ -226,8 +262,76 @@
             return enable3DPreview;
         }
 
+        // Tooltip system - positions tooltips dynamically to avoid going off-screen
+        let activeTooltip = null;
+
+        function initTooltips() {
+            document.querySelectorAll('.help-icon[data-tooltip]').forEach(icon => {
+                icon.addEventListener('mouseenter', showTooltip);
+                icon.addEventListener('mouseleave', hideTooltip);
+            });
+        }
+
+        function showTooltip(e) {
+            const icon = e.currentTarget;
+            const text = icon.getAttribute('data-tooltip');
+            if (!text) return;
+
+            // Remove any existing tooltip
+            hideTooltip();
+
+            // Create tooltip element
+            const tooltip = document.createElement('div');
+            tooltip.className = 'tooltip-popup';
+            tooltip.textContent = text;
+            document.body.appendChild(tooltip);
+            activeTooltip = tooltip;
+
+            // Get positions
+            const iconRect = icon.getBoundingClientRect();
+            const tooltipRect = tooltip.getBoundingClientRect();
+            const padding = 8;
+
+            // Calculate position - prefer above the icon
+            let top = iconRect.top - tooltipRect.height - padding;
+            let left = iconRect.left + (iconRect.width / 2) - (tooltipRect.width / 2);
+
+            // If tooltip would go off the top, show below instead
+            if (top < padding) {
+                top = iconRect.bottom + padding;
+            }
+
+            // If tooltip would go off the left edge
+            if (left < padding) {
+                left = padding;
+            }
+
+            // If tooltip would go off the right edge
+            if (left + tooltipRect.width > window.innerWidth - padding) {
+                left = window.innerWidth - tooltipRect.width - padding;
+            }
+
+            // If tooltip would go off the bottom
+            if (top + tooltipRect.height > window.innerHeight - padding) {
+                top = window.innerHeight - tooltipRect.height - padding;
+            }
+
+            tooltip.style.top = `${top}px`;
+            tooltip.style.left = `${left}px`;
+        }
+
+        function hideTooltip() {
+            if (activeTooltip) {
+                activeTooltip.remove();
+                activeTooltip = null;
+            }
+        }
+
         // Initialize app
         document.addEventListener('DOMContentLoaded', () => {
+            // Initialize tooltip system
+            initTooltips();
+
             // Load 3D preview preference
             enable3DPreview = localStorage.getItem('enable3DPreview') === 'true';
             document.getElementById('enable3DPreview').checked = enable3DPreview;
@@ -241,6 +345,67 @@
                 e.target.value = value;
                 SharedState.setNamespace(value);
             }, 300));
+
+            // Set up GitHub branch dropdown
+            const githubBranchSelect = document.getElementById('githubBranch');
+            const branchLoading = document.getElementById('branchLoading');
+
+            // Set initial value
+            githubBranchSelect.value = SharedState.getGitHubBranch();
+
+            // Fetch branches from GitHub
+            async function fetchGitHubBranches() {
+                branchLoading.classList.remove('hidden');
+                try {
+                    const response = await fetch('https://api.github.com/repos/amblelabs/ait/branches?per_page=100');
+                    if (response.ok) {
+                        const branches = await response.json();
+                        const currentBranch = SharedState.getGitHubBranch();
+
+                        // Clear existing options
+                        githubBranchSelect.innerHTML = '';
+
+                        // Sort branches - put main first, then sort alphabetically
+                        branches.sort((a, b) => {
+                            if (a.name === 'main') return -1;
+                            if (b.name === 'main') return 1;
+                            return a.name.localeCompare(b.name);
+                        });
+
+                        // Add branch options
+                        branches.forEach(branch => {
+                            const option = document.createElement('option');
+                            option.value = branch.name;
+                            option.textContent = branch.name;
+                            if (branch.name === currentBranch) {
+                                option.selected = true;
+                            }
+                            githubBranchSelect.appendChild(option);
+                        });
+
+                        // If current branch not in list, add it
+                        if (!branches.find(b => b.name === currentBranch)) {
+                            const option = document.createElement('option');
+                            option.value = currentBranch;
+                            option.textContent = currentBranch + ' (custom)';
+                            option.selected = true;
+                            githubBranchSelect.insertBefore(option, githubBranchSelect.firstChild);
+                        }
+                    }
+                } catch (error) {
+                    console.warn('Could not fetch GitHub branches:', error);
+                    // Keep default 'main' option
+                } finally {
+                    branchLoading.classList.add('hidden');
+                }
+            }
+
+            // Fetch branches on load
+            fetchGitHubBranches();
+
+            githubBranchSelect.addEventListener('change', (e) => {
+                SharedState.setGitHubBranch(e.target.value || 'main');
+            });
 
             // Update stack count on changes
             SharedState.onStackChange((stack) => {
@@ -727,7 +892,76 @@
                 document.getElementById('importPackInput').value = '';
             }
         }
+
+        // Show export confirmation modal
+        function showExportConfirmation() {
+            const namespace = SharedState.getNamespace();
+            if (!namespace) {
+                Utils.showToast('Please set a namespace first!', 'error');
+                return;
+            }
+
+            const stack = SharedState.getStack();
+            if (stack.length === 0) {
+                Utils.showToast('No items in pack to export!', 'error');
+                return;
+            }
+
+            document.getElementById('exportModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Hide export confirmation modal
+        function hideExportModal() {
+            document.getElementById('exportModal').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // Confirm export and download
+        function confirmExport() {
+            hideExportModal();
+            ExportManager.exportPack();
+        }
+
+        // Close modal on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                hideExportModal();
+            }
+        });
     </script>
+
+    <!-- Export Confirmation Modal -->
+    <div id="exportModal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-icon">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h2 class="modal-title">Important: Before You Download</h2>
+            <div class="modal-content">
+                <p>Your pack will be exported as a single <strong>.zip</strong> file.</p>
+                <div class="modal-warning">
+                    <i class="fa-solid fa-info-circle"></i>
+                    <div>
+                        <p><strong>This pack must be enabled as BOTH:</strong></p>
+                        <ul>
+                            <li><i class="fa-solid fa-database"></i> A <strong>Datapack</strong> (in your world's datapacks folder)</li>
+                            <li><i class="fa-solid fa-palette"></i> A <strong>Resource Pack</strong> (in your resourcepacks folder)</li>
+                        </ul>
+                        <p class="modal-note">The same .zip file goes in both locations!</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="hideExportModal()">
+                    <i class="fa-solid fa-xmark"></i> Cancel
+                </button>
+                <button class="btn btn-primary" onclick="confirmExport()">
+                    <i class="fa-solid fa-download"></i> Download Pack
+                </button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
 
