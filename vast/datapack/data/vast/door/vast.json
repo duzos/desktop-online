@@ -1,0 +1,10 @@
+{
+    "id": "vast:vast",
+    "model": "vast:vast_door",
+    "is_double": true,
+    "open_sound": "ait:tardis/police_box_door_open",
+    "close_sound": "tardis/police_box_door_close",
+    "left_animation": "vast:open_left",
+    "right_animation": "vast:open_right",
+    "offset": [0, 2.5, -1]
+}

@@ -1,0 +1,6 @@
+{
+  "id": "redux:copper_oregano",
+  "parent": "redux:copper",
+  "texture": "redux:textures/copper_oregano.png",
+  "emission": "redux:textures/copper_oregano_emission.png"
+}

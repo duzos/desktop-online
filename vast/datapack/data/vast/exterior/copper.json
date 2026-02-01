@@ -1,0 +1,11 @@
+{
+    "id": "vast:copper",
+    "category": "ait:exterior/police_box",
+    "parent": "ait:exterior/police_box/coral",
+    "texture": "vast:textures/copper.png",
+    "emission": "vast:textures/copper_emission.png",
+    "model": "vast:vast",
+    "door": "vast:vast",
+    "left_animation": "vast:open_left",
+    "right_animation": "vast:open_right"
+}

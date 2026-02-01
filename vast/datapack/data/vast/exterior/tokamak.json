@@ -1,0 +1,10 @@
+{
+    "id": "vast:tokamak",
+    "category": "ait:exterior/police_box",
+    "parent": "ait:exterior/police_box/coral",
+    "texture": "vast:textures/tokamak.png",
+    "model": "vast:vast",
+    "door": "vast:vast",
+    "left_animation": "vast:open_left",
+    "right_animation": "vast:open_right"
+}

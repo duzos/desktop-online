@@ -1,0 +1,5 @@
+{
+  "id": "redux:hartnell_kelt",
+  "parent": "redux:hartnell",
+  "texture": "redux:textures/hartnell_kelt.png"
+}

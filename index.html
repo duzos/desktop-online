@@ -3,32 +3,658 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>duzo AIT generator</title>
+    <title>AIT Pack Generator | duzo</title>
     <link rel="icon" href="./assets/icon.ico">
-    <meta name="description" content="">
+    <meta name="description" content="Create custom datapacks and resource packs for Adventures in Time (AIT) Minecraft mod">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="./style.css">
+    <script src="https://kit.fontawesome.com/2b1db366f1.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <!-- Three.js for 3D preview -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/controls/OrbitControls.js"></script>
 </head>
-    <body style="flex-direction: column;">
-        <h1 style="text-align: center; font-size: 3em; margin-top: 1em;">Welcome to the AIT generator</h1>
-        <div class="subfolders" style="margin-top: 2em;">
-            <ul id="folder-list" style="font-size: 2em; list-style-type: none; padding-left: 0;"></ul>
-            <script>
-                const subfolders = [
-                    'desktop',
-                    'exterior'
-                ];
+<body>
+    <div class="background-gradient"></div>
 
-                const list = document.getElementById('folder-list');
-                subfolders.forEach(folder => {
-                    const li = document.createElement('li');
-                    const a = document.createElement('a');
-                    a.href = `./${folder}/index.html`;
-                    a.textContent = folder;
-                    li.appendChild(a);
-                    list.appendChild(li);
-                });
-            </script>
-        </div>
-    </body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <a href="#" class="nav-brand">
+            <img src="./assets/icon.png" alt="AIT">
+            AIT Generator
+        </a>
+        <ul class="nav-links">
+            <li><a href="https://amblelabs.dev/ait-wiki/" target="_blank"><i class="fa-solid fa-book"></i> Wiki</a></li>
+            <li><a href="https://discord.gg/WjKhRjavCj" target="_blank"><i class="fa-brands fa-discord"></i> Discord</a></li>
+            <li><a href="https://modrinth.com/mod/ait" target="_blank"><i class="fa-solid fa-download"></i> Modrinth</a></li>
+            <li><a href="https://github.com/amblelabs/ait" target="_blank"><i class="fa-brands fa-github"></i></a></li>
+        </ul>
+    </nav>
+
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2><i class="fa-solid fa-box"></i> Pack Settings</h2>
+                <div class="namespace-input">
+                    <input type="text" id="namespaceInput" placeholder="my_pack"
+                        pattern="[a-z0-9_]+" title="Lowercase letters, numbers, and underscores only">
+                </div>
+                <div class="experimental-toggle">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="enable3DPreview" onchange="toggle3DPreview(this.checked)">
+                        <span class="toggle-slider"></span>
+                        <span class="toggle-label">3D Preview (Experimental)</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="stack-section">
+                <h3>
+                    <span><i class="fa-solid fa-layer-group"></i> Pack Contents</span>
+                    <span class="stack-count" id="stackCount">0</span>
+                </h3>
+                <div id="stackItems">
+                    <div class="empty-stack">
+                        <p>No items yet</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-footer">
+                <button class="btn btn-primary" id="exportBtn" onclick="ExportManager.exportPack()">
+                    <i class="fa-solid fa-download"></i> Export Pack
+                </button>
+                <div class="btn-row">
+                    <button class="btn btn-secondary" onclick="document.getElementById('importPackInput').click()">
+                        <i class="fa-solid fa-upload"></i> Import
+                    </button>
+                    <input type="file" id="importPackInput" accept=".zip" style="display:none" onchange="importPack(this.files[0])">
+                    <button class="btn btn-secondary" onclick="clearAllItems()">
+                        <i class="fa-solid fa-trash"></i> Clear
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="hero-banner">
+                <h1><i class="fa-solid fa-box-open"></i> AIT Pack Generator</h1>
+                <p>Create custom exteriors, interiors, consoles, and more for Adventures in Time</p>
+            </div>
+
+            <div class="tool-selector">
+                <label for="toolSelector">Add to Pack</label>
+                <select id="toolSelector" onchange="handleToolSelect(this.value)">
+                    <option value="">-- Select a Tool --</option>
+                    <optgroup label="TARDIS Appearance">
+                        <option value="exterior">Exterior Variant</option>
+                        <option value="exterior-model">Exterior Model (Full Custom)</option>
+                        <option value="interior">Interior/Desktop</option>
+                        <option value="console-variant">Console Variant (Texture)</option>
+                        <option value="console-model">Console Model (Full Custom)</option>
+                        <option value="category">Exterior Category</option>
+                    </optgroup>
+                    <optgroup label="Sounds & Effects">
+                        <option value="hum">Hum Sound</option>
+                        <option value="flight-sound">Flight Sound</option>
+                        <option value="vortex">Vortex Effect</option>
+                        <option value="exterior-animation">Exterior Animation</option>
+                    </optgroup>
+                    <optgroup label="Items & Misc">
+                        <option value="sonic">Sonic Screwdriver</option>
+                        <option value="mug">Mug/Drink</option>
+                        <option value="fabricator">Fabricator Recipe</option>
+                    </optgroup>
+                    <optgroup label="World & Dimensions">
+                        <option value="planet">Planet</option>
+                        <option value="unlockable-dimension">Locked Dimension</option>
+                    </optgroup>
+                </select>
+            </div>
+
+            <div id="workspace">
+                <div class="empty-state">
+                    <i class="fa-solid fa-toolbox"></i>
+                    <h3>Select a Tool</h3>
+                    <p>Choose a tool from the dropdown above to add items to your pack</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="./js/utils.js"></script>
+    <script src="./js/shared-state.js"></script>
+    <script src="./js/bbmodel-parser.js"></script>
+    <script src="./js/model-preview.js"></script>
+    <script src="./js/export.js"></script>
+    <script src="./js/tool-manager.js"></script>
+    <script>
+        // Global state for experimental features
+        let enable3DPreview = false;
+
+        // Toggle 3D preview
+        function toggle3DPreview(enabled) {
+            enable3DPreview = enabled;
+            localStorage.setItem('enable3DPreview', enabled ? 'true' : 'false');
+
+            // If currently viewing a tool that supports preview, refresh it
+            const currentTool = ToolManager.getCurrentTool();
+            if (currentTool && ['console-model', 'exterior-model', 'console-variant', 'exterior'].includes(currentTool)) {
+                ToolManager.renderTool(currentTool);
+            }
+        }
+
+        // Check if 3D preview is enabled
+        function is3DPreviewEnabled() {
+            return enable3DPreview;
+        }
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', () => {
+            // Load 3D preview preference
+            enable3DPreview = localStorage.getItem('enable3DPreview') === 'true';
+            document.getElementById('enable3DPreview').checked = enable3DPreview;
+
+            // Set up namespace input
+            const namespaceInput = document.getElementById('namespaceInput');
+            namespaceInput.value = SharedState.getNamespace();
+
+            namespaceInput.addEventListener('input', Utils.debounce((e) => {
+                const value = e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '');
+                e.target.value = value;
+                SharedState.setNamespace(value);
+            }, 300));
+
+            // Update stack count on changes
+            SharedState.onStackChange((stack) => {
+                document.getElementById('stackCount').textContent = stack.length;
+                ToolManager.updateStackUI();
+            });
+
+            // Initial UI update
+            ToolManager.updateStackUI();
+            document.getElementById('stackCount').textContent = SharedState.getStack().length;
+        });
+
+        // Handle tool selection
+        function handleToolSelect(type) {
+            if (type) {
+                ToolManager.renderTool(type);
+            } else {
+                ToolManager.clearForm();
+            }
+        }
+
+        // Update exterior animation sound based on selected state
+        function updateExteriorAnimSound(state) {
+            const soundInput = document.getElementById('soundId');
+            if (soundInput) {
+                // Only auto-fill if the current value is empty or is one of the default sounds
+                const currentValue = soundInput.value;
+                const defaultDemat = 'ait:tardis/demat';
+                const defaultMat = 'ait:tardis/mat';
+
+                if (!currentValue || currentValue === defaultDemat || currentValue === defaultMat) {
+                    soundInput.value = state === 'mat' ? defaultMat : defaultDemat;
+                }
+            }
+        }
+
+        // Clear all items
+        function clearAllItems() {
+            if (SharedState.getStack().length === 0) return;
+            if (confirm('Clear all items from the pack? This cannot be undone.')) {
+                SharedState.clearStack();
+                ToolManager.clearForm();
+                Utils.showToast('All items cleared', 'info');
+            }
+        }
+
+        // Import pack from zip file
+        async function importPack(file) {
+            if (!file) return;
+
+            try {
+                Utils.showToast('Importing pack...', 'info');
+
+                const zip = await JSZip.loadAsync(file);
+                let originalNamespace = null;
+                let itemsImported = 0;
+
+                // Find namespace from data folder structure
+                for (const path of Object.keys(zip.files)) {
+                    const match = path.match(/^data\/([^\/]+)\//);
+                    if (match && match[1] !== 'minecraft') {
+                        originalNamespace = match[1];
+                        break;
+                    }
+                }
+
+                // Fallback: try assets folder
+                if (!originalNamespace) {
+                    for (const path of Object.keys(zip.files)) {
+                        const match = path.match(/^assets\/([^\/]+)\//);
+                        if (match && match[1] !== 'minecraft') {
+                            originalNamespace = match[1];
+                            break;
+                        }
+                    }
+                }
+
+                if (originalNamespace) {
+                    SharedState.setNamespace(originalNamespace);
+                    document.getElementById('namespaceInput').value = originalNamespace;
+                }
+
+                // Use originalNamespace for file lookups
+                const namespace = originalNamespace;
+
+                // Helper to get file from zip as File object
+                async function getFileFromZip(path, mimeType) {
+                    const entry = zip.files[path];
+                    if (!entry) return null;
+                    const blob = await entry.async('blob');
+                    return new File([blob], path.split('/').pop(), { type: mimeType });
+                }
+
+                // Helper to find texture file
+                async function findTexture(basePath, id) {
+                    // Try common texture paths
+                    const paths = [
+                        `assets/${namespace}/textures/${id}.png`,
+                        `assets/${namespace}/textures/exterior/${id}.png`,
+                        `assets/${namespace}/textures/blockentities/consoles/${id}.png`,
+                        `assets/${namespace}/textures/blockentites/consoles/${id}.png`,
+                    ];
+                    for (const p of paths) {
+                        if (zip.files[p]) {
+                            return await getFileFromZip(p, 'image/png');
+                        }
+                    }
+                    return null;
+                }
+
+                // Helper to find emission texture
+                async function findEmission(basePath, id) {
+                    const paths = [
+                        `assets/${namespace}/textures/${id}_emission.png`,
+                        `assets/${namespace}/textures/exterior/${id}_emission.png`,
+                        `assets/${namespace}/textures/blockentities/consoles/${id}_emission.png`,
+                        `assets/${namespace}/textures/blockentites/consoles/${id}_emission.png`,
+                    ];
+                    for (const p of paths) {
+                        if (zip.files[p]) {
+                            return await getFileFromZip(p, 'image/png');
+                        }
+                    }
+                    return null;
+                }
+
+                // Helper to find geo.json file
+                async function findGeoFile(id) {
+                    const paths = [
+                        `assets/${namespace}/bedrock/${id}.geo.json`,
+                        `assets/${namespace}/geo/${id}.geo.json`,
+                    ];
+                    for (const p of paths) {
+                        if (zip.files[p]) {
+                            return await getFileFromZip(p, 'application/json');
+                        }
+                    }
+                    return null;
+                }
+
+                // Helper to find animation.json file
+                async function findAnimationFile(id) {
+                    const paths = [
+                        `assets/${namespace}/bedrock/${id}.animation.json`,
+                        `assets/${namespace}/animations/${id}.animation.json`,
+                    ];
+                    for (const p of paths) {
+                        if (zip.files[p]) {
+                            return await getFileFromZip(p, 'application/json');
+                        }
+                    }
+                    return null;
+                }
+
+                // Process files
+                for (const [path, zipEntry] of Object.entries(zip.files)) {
+                    if (zipEntry.dir) continue;
+
+                    // Exterior variants
+                    const exteriorMatch = path.match(/^data\/([^\/]+)\/exterior\/([^\/]+)\.json$/);
+                    if (exteriorMatch) {
+                        const content = await zipEntry.async('string');
+                        const json = JSON.parse(content);
+                        const id = exteriorMatch[2];
+
+                        // Get texture files
+                        const texture = await findTexture('exterior', id);
+                        const emission = await findEmission('exterior', id);
+
+                        // Check if it has model (full exterior) or just texture (variant)
+                        if (json.model && json.door) {
+                            // Get model files
+                            const modelId = json.model.split(':')[1] || id;
+                            const exteriorGeo = await findGeoFile(modelId);
+                            const doorGeo = await findGeoFile(modelId + '_door') || await findGeoFile(json.door?.split(':')[1] + '_door');
+                            const doorAnimations = await findAnimationFile(modelId) || await findAnimationFile(id);
+
+                            // Extract animation names without namespace
+                            const leftAnim = json.left_animation?.split(':')[1] || 'open_left';
+                            const rightAnim = json.right_animation?.split(':')[1] || 'open_right';
+
+                            // Store data WITHOUT namespace - it will be added on export
+                            SharedState.addToStack('exterior-model', {
+                                id: id,
+                                name: json.name || Utils.formatAndCapitalize(id),
+                                category: json.category,  // Keep category as-is (might be ait: prefixed)
+                                parent: json.parent,      // Keep parent as-is
+                                isDoubleDoor: true,
+                                openSound: json.open_sound || 'ait:tardis/police_box_door_open',
+                                closeSound: json.close_sound || 'ait:tardis/police_box_door_close',
+                                leftAnimation: leftAnim,
+                                rightAnimation: rightAnim,
+                                doorOffsetX: json.door_offset?.[0] || 0,
+                                doorOffsetY: json.door_offset?.[1] || 2.5,
+                                doorOffsetZ: json.door_offset?.[2] || -1
+                            }, {
+                                texture: texture,
+                                emission: emission,
+                                exteriorGeo: exteriorGeo,
+                                doorGeo: doorGeo,
+                                doorAnimations: doorAnimations
+                            });
+                        } else {
+                            SharedState.addToStack('exterior', {
+                                id: id,
+                                name: json.name || Utils.formatAndCapitalize(id),
+                                category: json.category,
+                                parent: json.parent
+                            }, {
+                                texture: texture,
+                                emission: emission
+                            });
+                        }
+                        itemsImported++;
+                        continue;
+                    }
+
+                    // Console variants
+                    const consoleMatch = path.match(/^data\/([^\/]+)\/console\/([^\/]+)\.json$/);
+                    if (consoleMatch) {
+                        const content = await zipEntry.async('string');
+                        const json = JSON.parse(content);
+                        const id = consoleMatch[2];
+
+                        // Get texture files
+                        const texture = await findTexture('console', id);
+                        const emission = await findEmission('console', id);
+
+                        // Check if it has type.controls (full console) or just parent (variant)
+                        if (json.type && json.type.controls) {
+                            // Get model files
+                            const modelId = json.model?.split(':')[1] || id;
+                            const geometry = await findGeoFile(modelId);
+                            const animations = await findAnimationFile(modelId);
+
+                            // Store raw data - consoleJson will be regenerated on export
+                            SharedState.addToStack('console-model', {
+                                id: id,
+                                name: json.type?.name || Utils.formatAndCapitalize(id),
+                                controls: json.type?.controls || [],
+                                transformations: json.transformations,
+                                travelAnimations: json.animations || {}
+                            }, {
+                                texture: texture,
+                                emission: emission,
+                                geometry: geometry,
+                                animations: animations
+                            });
+                        } else {
+                            SharedState.addToStack('console-variant', {
+                                id: id,
+                                name: json.name || Utils.formatAndCapitalize(id),
+                                parent: json.parent
+                            }, {
+                                texture: texture,
+                                emission: emission
+                            });
+                        }
+                        itemsImported++;
+                        continue;
+                    }
+
+                    // Desktop/Interior
+                    const desktopMatch = path.match(/^data\/([^\/]+)\/desktop\/([^\/]+)\.json$/);
+                    if (desktopMatch) {
+                        const content = await zipEntry.async('string');
+                        const json = JSON.parse(content);
+                        const id = desktopMatch[2];
+
+                        // Try to find structure file and preview
+                        const structure = await getFileFromZip(`data/${namespace}/structures/interiors/${id}.nbt`, 'application/octet-stream');
+                        const preview = await getFileFromZip(`assets/${namespace}/textures/desktop/${id}.png`, 'image/png');
+
+                        SharedState.addToStack('interior', {
+                            id: id,
+                            name: json.name || Utils.formatAndCapitalize(id)
+                        }, {
+                            structure: structure,
+                            preview: preview
+                        });
+                        itemsImported++;
+                        continue;
+                    }
+
+                    // Hums
+                    const humMatch = path.match(/^data\/([^\/]+)\/hum\/([^\/]+)\.json$/);
+                    if (humMatch) {
+                        const content = await zipEntry.async('string');
+                        const json = JSON.parse(content);
+                        const id = humMatch[2];
+                        SharedState.addToStack('hum', {
+                            id: id,
+                            soundId: json.sound?.sound_id || ''
+                        }, {});
+                        itemsImported++;
+                        continue;
+                    }
+
+                    // Sonics
+                    const sonicMatch = path.match(/^data\/([^\/]+)\/sonic\/([^\/]+)\.json$/);
+                    if (sonicMatch) {
+                        const content = await zipEntry.async('string');
+                        const json = JSON.parse(content);
+                        const id = sonicMatch[2];
+
+                        const model = await getFileFromZip(`assets/${namespace}/models/item/sonic/${id}.json`, 'application/json');
+                        const texture = await getFileFromZip(`assets/${namespace}/textures/item/sonic/${id}.png`, 'image/png');
+
+                        SharedState.addToStack('sonic', {
+                            id: id,
+                            name: json.name || Utils.formatAndCapitalize(id),
+                            loyalty: json.loyalty?.type || 'NEUTRAL'
+                        }, {
+                            model: model,
+                            texture: texture
+                        });
+                        itemsImported++;
+                        continue;
+                    }
+
+                    // Vortex
+                    const vortexMatch = path.match(/^data\/([^\/]+)\/fx\/vortex\/([^\/]+)\.json$/);
+                    if (vortexMatch) {
+                        const content = await zipEntry.async('string');
+                        const json = JSON.parse(content);
+                        const id = vortexMatch[2];
+
+                        const texture = await getFileFromZip(`assets/${namespace}/textures/vortex/${id}.png`, 'image/png');
+                        const textureSecond = await getFileFromZip(`assets/${namespace}/textures/vortex/${id}_second.png`, 'image/png');
+                        const textureThird = await getFileFromZip(`assets/${namespace}/textures/vortex/${id}_third.png`, 'image/png');
+
+                        SharedState.addToStack('vortex', {
+                            id: id
+                        }, {
+                            texture: texture,
+                            textureSecond: textureSecond,
+                            textureThird: textureThird
+                        });
+                        itemsImported++;
+                        continue;
+                    }
+
+                    // Planet
+                    const planetMatch = path.match(/^data\/([^\/]+)\/planet\/([^\/]+)\.json$/);
+                    if (planetMatch) {
+                        const content = await zipEntry.async('string');
+                        const json = JSON.parse(content);
+                        const id = planetMatch[2];
+
+                        const texture = await getFileFromZip(`assets/${namespace}/textures/environment/${id}.png`, 'image/png');
+
+                        SharedState.addToStack('planet', {
+                            id: id,
+                            dimension: json.dimension,
+                            gravity: json.gravity,
+                            temperature: json.temperature,
+                            hasOxygen: json.has_oxygen,
+                            hasLandableSurface: json.has_landable_surface
+                        }, {
+                            texture: texture
+                        });
+                        itemsImported++;
+                        continue;
+                    }
+
+                    // Fabricator/Blueprint
+                    const blueprintMatch = path.match(/^data\/([^\/]+)\/blueprint\/([^\/]+)\.json$/);
+                    if (blueprintMatch) {
+                        const content = await zipEntry.async('string');
+                        const json = JSON.parse(content);
+                        const id = blueprintMatch[2];
+                        SharedState.addToStack('fabricator', {
+                            id: id,
+                            outputId: json.output?.id,
+                            outputCount: json.output?.Count || 1,
+                            inputs: json.inputs || []
+                        }, {});
+                        itemsImported++;
+                        continue;
+                    }
+
+                    // Flight sounds
+                    const flightMatch = path.match(/^data\/([^\/]+)\/fx\/flight\/([^\/]+)\.json$/);
+                    if (flightMatch) {
+                        const content = await zipEntry.async('string');
+                        const json = JSON.parse(content);
+                        const id = flightMatch[2];
+                        SharedState.addToStack('flight-sound', {
+                            id: id,
+                            soundId: json.sound,
+                            length: json.length
+                        }, {});
+                        itemsImported++;
+                        continue;
+                    }
+
+                    // Drinks/Mugs
+                    const drinkMatch = path.match(/^data\/([^\/]+)\/drink\/effect\/([^\/]+)\.json$/);
+                    if (drinkMatch) {
+                        const content = await zipEntry.async('string');
+                        const json = JSON.parse(content);
+                        const id = drinkMatch[2];
+                        SharedState.addToStack('mug', {
+                            id: id,
+                            hasCustomColor: json.has_custom_color,
+                            colorR: json.custom_color?.[0],
+                            colorG: json.custom_color?.[1],
+                            colorB: json.custom_color?.[2],
+                            potions: json.potion_instances || []
+                        }, {});
+                        itemsImported++;
+                        continue;
+                    }
+
+                    // Locked dimensions
+                    const lockedDimMatch = path.match(/^data\/([^\/]+)\/locked_dimension\/([^\/]+)\.json$/);
+                    if (lockedDimMatch) {
+                        const content = await zipEntry.async('string');
+                        const json = JSON.parse(content);
+                        const id = lockedDimMatch[2];
+                        SharedState.addToStack('unlockable-dimension', {
+                            id: id,
+                            dimension: json.dimension,
+                            itemId: json.stack?.id,
+                            itemCount: json.stack?.count || 1
+                        }, {});
+                        itemsImported++;
+                        continue;
+                    }
+
+                    // Exterior animations
+                    const animTypeMatch = path.match(/^data\/([^\/]+)\/fx\/animation\/type\/([^\/]+)\.json$/);
+                    if (animTypeMatch) {
+                        const content = await zipEntry.async('string');
+                        const json = JSON.parse(content);
+                        const id = animTypeMatch[2];
+
+                        const keyframes = await getFileFromZip(`data/${namespace}/fx/animation/keyframes/${id}.json`, 'application/json');
+
+                        SharedState.addToStack('exterior-animation', {
+                            id: id,
+                            expectedState: json.expected_state,
+                            soundId: json.sound
+                        }, {
+                            keyframes: keyframes
+                        });
+                        itemsImported++;
+                        continue;
+                    }
+
+                    // Categories
+                    const categoryMatch = path.match(/^data\/([^\/]+)\/categories\/([^\/]+)\.json$/);
+                    if (categoryMatch) {
+                        const content = await zipEntry.async('string');
+                        const json = JSON.parse(content);
+                        const id = categoryMatch[2];
+                        SharedState.addToStack('category', {
+                            id: id,
+                            name: json.name || Utils.formatAndCapitalize(id)
+                        }, {});
+                        itemsImported++;
+                        continue;
+                    }
+
+                    // Door definitions - skip, associated with exterior-models
+                    const doorMatch = path.match(/^data\/([^\/]+)\/door\/([^\/]+)\.json$/);
+                    if (doorMatch) {
+                        continue;
+                    }
+                }
+
+                // Reset import input
+                document.getElementById('importPackInput').value = '';
+
+                if (itemsImported > 0) {
+                    Utils.showToast(`Imported ${itemsImported} items from pack!`, 'success');
+                } else {
+                    Utils.showToast('No recognized items found in pack', 'warning');
+                }
+
+            } catch (error) {
+                console.error('Import error:', error);
+                Utils.showToast('Failed to import pack: ' + error.message, 'error');
+                document.getElementById('importPackInput').value = '';
+            }
+        }
+    </script>
+</body>
 </html>
+

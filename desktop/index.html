@@ -1,41 +1,148 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <title>duzo exterior generator</title>
-        <link rel="icon" href="../assets/icon.ico">
-        <meta name="description" content="">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="stylesheet" href="../style.css">
-    </head>
-    <body>
-        <div id="packFormContainer">
-            <h1 style="font-family: 'Verdana', sans-serif; font-weight: bold; color: #2d76a2;"><a href="https://amblelabs.github.io/ait-wiki/datapacks/interiors/">Datapack Desktop</a></h1>
-            
-            <form id="packForm">
-                <label for="namespace">Namespace</label>
-                <input type="text" id="namespace" name="namespace" required><br><br>
-        
-                <label for="id">ID</label>
-                <input type="text" id="id" name="id" required><br><br>
-        
-                <label for="nbtFile">Structure File</label>
-                <input type="file" id="nbtFile" accept=".nbt" required><br><br>
-        
-                <h2 class="optional-header">Optional</h2>
-                <label for="pngFile">Preview image</label>
-                <input type="file" id="pngFile" accept=".png"><br><br>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Interior Generator | AIT Pack Generator</title>
+    <link rel="icon" href="../assets/icon.ico">
+    <meta name="description" content="Create custom TARDIS interiors for Adventures in Time">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="../style.css">
+    <script src="https://kit.fontawesome.com/2b1db366f1.js" crossorigin="anonymous"></script>
+    <style>
+        .legacy-container {
+            max-width: 600px;
+            margin: 100px auto 2rem;
+            padding: 2rem;
+        }
+        .redirect-banner {
+            background: rgba(74, 222, 128, 0.1);
+            border: 1px solid var(--border-colour);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        .redirect-banner a {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="background-gradient"></div>
 
-                <label for="langName">Name</label>
-                <input type="text" id="langName" name="langName"><br><br>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <a href="../index.html" class="nav-brand">
+            <img src="../assets/icon.png" alt="AIT">
+            AIT Generator
+        </a>
+        <ul class="nav-links">
+            <li><a href="https://amblelabs.dev/ait-wiki/datapacks/interiors/" target="_blank"><i class="fa-solid fa-book"></i> Wiki Guide</a></li>
+            <li><a href="../index.html"><i class="fa-solid fa-arrow-left"></i> Full Generator</a></li>
+        </ul>
+    </nav>
 
-                <button type="button" onclick="createZip()">Create</button>
+    <div class="legacy-container">
+        <div class="redirect-banner">
+            <p>Looking for more tools? Try the <a href="../index.html"><i class="fa-solid fa-toolbox"></i> Full Pack Generator</a> with stacking support!</p>
+        </div>
+
+        <div id="workspace" style="background: var(--bg-colour); border: 1px solid rgba(74, 222, 128, 0.2); border-radius: 16px; padding: 1.5rem;">
+            <div class="tool-header">
+                <h2><i class="fa-solid fa-cube"></i> Interior/Desktop</h2>
+                <a href="https://amblelabs.dev/ait-wiki/datapacks/interiors/" target="_blank" class="wiki-link">
+                    <i class="fa-solid fa-book"></i> Wiki Guide
+                </a>
+            </div>
+            <p class="tool-description">Add custom TARDIS interior rooms</p>
+
+            <form id="packForm" class="tool-form">
+                <div class="form-group">
+                    <label for="namespace">Namespace <span class="required">*</span></label>
+                    <input type="text" id="namespace" name="namespace" required placeholder="my_pack" pattern="[a-z0-9_]+">
+                </div>
+
+                <div class="form-group">
+                    <label for="id">ID <span class="required">*</span></label>
+                    <input type="text" id="id" name="id" required placeholder="my_interior" pattern="[a-z0-9_]+">
+                </div>
+
+                <div class="form-group">
+                    <label for="nbtFile">Structure File (.nbt) <span class="required">*</span></label>
+                    <input type="file" id="nbtFile" accept=".nbt" required>
+                    <span class="file-hint">Use a Structure Block in-game to save your build</span>
+                </div>
+
+                <div class="form-section">
+                    <h3>Optional</h3>
+                    <div class="form-group">
+                        <label for="pngFile">Preview Image</label>
+                        <input type="file" id="pngFile" accept=".png">
+                        <span class="file-hint">Square PNG for the interior selection screen</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="langName">Display Name</label>
+                        <input type="text" id="langName" name="langName" placeholder="My Interior">
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-primary" onclick="createZip()">
+                        <i class="fa-solid fa-download"></i> Create Pack
+                    </button>
+                </div>
             </form>
         </div>
-    
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-        <script src="./main.js"></script>
-    </body>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script>
+        function formatAndCapitalize(input) {
+            return input.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+        }
+
+        async function createZip() {
+            const namespace = document.getElementById('namespace').value;
+            const id = document.getElementById('id').value;
+            let pngFile = document.getElementById('pngFile').files[0];
+            const nbtFile = document.getElementById('nbtFile').files[0];
+            let name = document.getElementById('langName').value;
+
+            if (!namespace || !id || !nbtFile) {
+                alert("Please fill in all required fields.");
+                return;
+            }
+
+            if (!pngFile) {
+                // Fetch default icon if no preview uploaded
+                const response = await fetch('../assets/icon.png');
+                pngFile = await response.blob();
+            }
+
+            if (!name) name = formatAndCapitalize(id);
+
+            const meta = JSON.stringify({ pack: { pack_format: 48, description: "Made with duzo's AIT generator" } }, null, 2);
+            const desktopJson = JSON.stringify({
+                watermark: "made with duzos ait generator",
+                id: `${namespace}:${id}`
+            }, null, 2);
+            const langJson = JSON.stringify({ [`desktop.${namespace}.${id}`]: name }, null, 2);
+
+            const zip = new JSZip();
+            zip.file('pack.mcmeta', meta);
+            zip.file(`data/${namespace}/structures/interiors/${id}.nbt`, nbtFile);
+            zip.file(`data/${namespace}/desktop/${id}.json`, desktopJson);
+            zip.file(`assets/${namespace}/textures/desktop/${id}.png`, pngFile);
+            zip.file(`assets/${namespace}/lang/en_us.json`, langJson);
+
+            const blob = await zip.generateAsync({ type: "blob" });
+            saveAs(blob, `${namespace}_${id}_pack.zip`);
+        }
+    </script>
+</body>
 </html>

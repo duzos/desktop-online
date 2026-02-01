@@ -1,0 +1,6 @@
+{
+  "id": "redux:copper_taiga",
+  "parent": "redux:copper",
+  "texture": "redux:textures/copper_taiga.png",
+  "emission": "redux:textures/copper_taiga_emission.png"
+}

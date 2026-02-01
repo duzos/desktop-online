@@ -1,74 +1,183 @@
 <!DOCTYPE html>
-<html lang="uk">
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <title>duzo desktop generator</title>
-        <link rel="icon" href="../assets/icon.ico">
-        <meta name="description" content="">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="stylesheet" href="../style.css">
-    </head>
-    <body>
-        <div id="packFormContainer">
-            <h1 style="font-family: 'Verdana', sans-serif; font-weight: bold; color: #2d76a2;"><a href="https://amblelabs.github.io/ait-wiki/datapacks/exteriors/">Datapack Exterior</a></h1>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Exterior Generator | AIT Pack Generator</title>
+    <link rel="icon" href="../assets/icon.ico">
+    <meta name="description" content="Create custom TARDIS exteriors for Adventures in Time">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="../style.css">
+    <script src="https://kit.fontawesome.com/2b1db366f1.js" crossorigin="anonymous"></script>
+    <style>
+        .legacy-container {
+            max-width: 600px;
+            margin: 100px auto 2rem;
+            padding: 2rem;
+        }
+        .redirect-banner {
+            background: rgba(74, 222, 128, 0.1);
+            border: 1px solid var(--border-colour);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        .redirect-banner a {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="background-gradient"></div>
 
-            <form id="packForm">
-                <label for="namespace">Namespace</label>
-                <input type="text" id="namespace" name="namespace" required><br><br>
-        
-                <label for="id">ID</label>
-                <input type="text" id="id" name="id" required><br><br>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <a href="../index.html" class="nav-brand">
+            <img src="../assets/icon.png" alt="AIT">
+            AIT Generator
+        </a>
+        <ul class="nav-links">
+            <li><a href="https://amblelabs.dev/ait-wiki/datapacks/exteriors/" target="_blank"><i class="fa-solid fa-book"></i> Wiki Guide</a></li>
+            <li><a href="../index.html"><i class="fa-solid fa-arrow-left"></i> Full Generator</a></li>
+        </ul>
+    </nav>
 
-                <label for="parent">Parent</label>
-                <select id="parent" name="parent" required onchange="toggleOtherParent()">
-                    <option value="">--Select Category--</option>
-                    <option value="police_box/default">Police Box</option>
-                    <option value="police_box/coral">Coral Box</option>
-                    <option value="police_box/renaissance">Renaissance Box</option>
-                    <option value="classic/prime">Classic Police Box</option>
-                    <option value="classic/hudolin">Hudolin Box</option>
-                    <option value="booth/default">K2 Phone Booth</option>
-                    <option value="capsule/default">TT Capsule</option>
-                    <option value="easter_head/default">Moyai</option>
-                    <option value="plinth/default">Plinth</option>
-                    <option value="tardim/default">TARDIM</option>
-                    <option value="siege_mode/default">Siege Mode</option>
-                    <option value="other">Other</option>
-                </select>
-                <input type="text" id="otherParent" name="otherParent" placeholder="Enter custom parent" style="display:none; margin-top:8px;"><br><br>
+    <div class="legacy-container">
+        <div class="redirect-banner">
+            <p>Looking for more tools? Try the <a href="../index.html"><i class="fa-solid fa-toolbox"></i> Full Pack Generator</a> with stacking support!</p>
+        </div>
 
-                <label for="texture">Texture</label>
-                <input type="file" id="texture" accept=".png"><br><br>
+        <div id="workspace" style="background: var(--bg-colour); border: 1px solid rgba(74, 222, 128, 0.2); border-radius: 16px; padding: 1.5rem;">
+            <div class="tool-header">
+                <h2><i class="fa-solid fa-door-open"></i> Exterior Variant</h2>
+                <a href="https://amblelabs.dev/ait-wiki/datapacks/exteriors/" target="_blank" class="wiki-link">
+                    <i class="fa-solid fa-book"></i> Wiki Guide
+                </a>
+            </div>
+            <p class="tool-description">Create custom exterior textures for TARDIS shells</p>
 
-                <h2 class="optional-header">Optional</h2>
-                <label for="emission">Emission</label>
-                <input type="file" id="emission" accept=".png"><br><br>
+            <form id="packForm" class="tool-form">
+                <div class="form-group">
+                    <label for="namespace">Namespace <span class="required">*</span></label>
+                    <input type="text" id="namespace" name="namespace" required placeholder="my_pack" pattern="[a-z0-9_]+">
+                </div>
 
-                <label for="category">Own Category</label>
-                <input type="text" id="category" name="category" placeholder="Enter custom category" style="margin-top:8px;"><br><br>
+                <div class="form-group">
+                    <label for="id">ID <span class="required">*</span></label>
+                    <input type="text" id="id" name="id" required placeholder="my_exterior" pattern="[a-z0-9_]+">
+                </div>
 
-                <label for="langName">Name</label>
-                <input type="text" id="langName" name="langName"><br><br>
+                <div class="form-group">
+                    <label for="parent">Parent Model <span class="required">*</span></label>
+                    <select id="parent" name="parent" required onchange="toggleOtherParent()">
+                        <option value="">-- Select Parent --</option>
+                        <option value="police_box/default">Police Box (Default)</option>
+                        <option value="police_box/coral">Police Box (Coral)</option>
+                        <option value="police_box/renaissance">Police Box (Renaissance)</option>
+                        <option value="classic/prime">Classic Police Box</option>
+                        <option value="classic/hudolin">Hudolin Box</option>
+                        <option value="booth/default">K2 Phone Booth</option>
+                        <option value="capsule/default">TT Capsule</option>
+                        <option value="easter_head/default">Moyai</option>
+                        <option value="plinth/default">Plinth</option>
+                        <option value="tardim/default">TARDIM</option>
+                        <option value="siege_mode/default">Siege Mode</option>
+                        <option value="other">Other (Custom)</option>
+                    </select>
+                    <input type="text" id="otherParent" name="otherParent" placeholder="namespace:exterior/type/variant" class="hidden">
+                </div>
 
-                <button type="button" onclick="createZip()">Create</button>
+                <div class="form-group">
+                    <label for="texture">Texture <span class="required">*</span></label>
+                    <input type="file" id="texture" accept=".png" required>
+                    <span class="file-hint">PNG image for the exterior</span>
+                </div>
+
+                <div class="form-section">
+                    <h3>Optional</h3>
+                    <div class="form-group">
+                        <label for="emission">Emission Texture</label>
+                        <input type="file" id="emission" accept=".png">
+                        <span class="file-hint">Glowing parts texture</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="category">Custom Category</label>
+                        <input type="text" id="category" name="category" placeholder="namespace:category_name">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="langName">Display Name</label>
+                        <input type="text" id="langName" name="langName" placeholder="My Exterior">
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-primary" onclick="createZip()">
+                        <i class="fa-solid fa-download"></i> Create Pack
+                    </button>
+                </div>
             </form>
         </div>
-        <script>
-            function toggleOtherParent() {
-                const category = document.getElementById('parent');
-                const otherInput = document.getElementById('otherParent');
-                if (category.value === 'other') {
-                    otherInput.style.display = 'inline-block';
-                    otherInput.required = true;
-                } else {
-                    otherInput.style.display = 'none';
-                    otherInput.required = false;
-                }
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script>
+        function toggleOtherParent() {
+            const select = document.getElementById('parent');
+            const other = document.getElementById('otherParent');
+            other.classList.toggle('hidden', select.value !== 'other');
+        }
+
+        function formatAndCapitalize(input) {
+            return input.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+        }
+
+        async function createZip() {
+            const namespace = document.getElementById('namespace').value;
+            const id = document.getElementById('id').value;
+            let parent = document.getElementById('parent').value;
+            const texture = document.getElementById('texture').files[0];
+            const emission = document.getElementById('emission').files[0];
+            let name = document.getElementById('langName').value;
+            let ownCategory = document.getElementById('category').value;
+            let ownParent = document.getElementById('otherParent').value;
+
+            if (!namespace || !id || !parent || !texture) {
+                alert("Please fill in all required fields.");
+                return;
             }
-        </script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-        <script src="./main.js"></script>
-    </body>
+
+            if (!name) name = formatAndCapitalize(id);
+
+            let category = ownCategory || "ait:exterior/" + parent.split("/")[0];
+            parent = ownParent || "ait:exterior/" + parent;
+
+            const meta = JSON.stringify({ pack: { pack_format: 48, description: "Made with duzo's AIT generator" } }, null, 2);
+            const exteriorJson = JSON.stringify({
+                watermark: "made with duzos ait generator",
+                id: `${namespace}:${id}`,
+                category: category,
+                parent: parent,
+                texture: `${namespace}:textures/exterior/${id}.png`,
+                ...(emission && { emission: `${namespace}:textures/exterior/${id}_emission.png` })
+            }, null, 2);
+            const langJson = JSON.stringify({ [`exterior.${namespace}.${id}`]: name }, null, 2);
+
+            const zip = new JSZip();
+            zip.file('pack.mcmeta', meta);
+            zip.file(`data/${namespace}/exterior/${id}.json`, exteriorJson);
+            zip.file(`assets/${namespace}/textures/exterior/${id}.png`, texture);
+            if (emission) zip.file(`assets/${namespace}/textures/exterior/${id}_emission.png`, emission);
+            zip.file(`assets/${namespace}/lang/en_us.json`, langJson);
+
+            const blob = await zip.generateAsync({ type: "blob" });
+            saveAs(blob, `${namespace}_${id}_pack.zip`);
+        }
+    </script>
+</body>
 </html>

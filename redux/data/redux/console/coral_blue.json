@@ -1,0 +1,6 @@
+{
+  "id": "redux:coral_blue",
+  "parent": "redux:coral",
+  "texture": "redux:textures/coral_blue.png",
+  "emission": "redux:texture/coral_blue_emission.png"
+}
