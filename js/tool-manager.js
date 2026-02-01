@@ -1885,6 +1885,83 @@ const ToolManager = (function() {
     }
 
     /**
+     * Get current form data and files without clearing the form
+     * Used to preserve state when toggling 3D preview
+     */
+    function getCurrentFormData() {
+        const form = document.getElementById('toolForm');
+        if (!form) return { data: null, files: null };
+
+        const formData = new FormData(form);
+        const data = {};
+        const files = { ...editingItemFiles }; // Start with existing files
+
+        // Process form data
+        for (const [key, value] of formData.entries()) {
+            if (value instanceof File && value.size > 0) {
+                files[key] = value;
+            } else if (typeof value === 'string') {
+                data[key] = value;
+            }
+        }
+
+        // Handle array inputs (fabricator, mugs)
+        const inputItems = form.querySelectorAll('[name="inputItem[]"]');
+        if (inputItems.length > 0) {
+            data.inputs = [];
+            inputItems.forEach((input, i) => {
+                if (input.value) {
+                    data.inputs.push({
+                        item: input.value,
+                        minCount: form.querySelectorAll('[name="inputMin[]"]')[i]?.value || 1,
+                        maxCount: form.querySelectorAll('[name="inputMax[]"]')[i]?.value || 1
+                    });
+                }
+            });
+        }
+
+        const potionItems = form.querySelectorAll('[name="potionId[]"]');
+        if (potionItems.length > 0) {
+            data.potions = [];
+            potionItems.forEach((input, i) => {
+                if (input.value) {
+                    data.potions.push({
+                        id: input.value,
+                        duration: form.querySelectorAll('[name="potionDuration[]"]')[i]?.value || 200,
+                        amplifier: form.querySelectorAll('[name="potionAmplifier[]"]')[i]?.value || 0
+                    });
+                }
+            });
+        }
+
+        // Handle checkboxes
+        form.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+            data[checkbox.name] = checkbox.checked;
+        });
+
+        // Handle processed bbmodel data
+        if (form.dataset.processedModel) {
+            data._processedModel = form.dataset.processedModel;
+        }
+
+        // Handle controls data
+        const controlsContainer = document.getElementById('consoleControlsList') || document.getElementById('exteriorControlsList');
+        if (controlsContainer) {
+            const controlItems = controlsContainer.querySelectorAll('.control-item');
+            data._controls = [];
+            controlItems.forEach(item => {
+                data._controls.push({
+                    id: item.querySelector('[data-control-id]')?.dataset.controlId || item.querySelector('.control-name')?.textContent,
+                    type: item.querySelector('.control-type')?.value,
+                    sequence: item.querySelector('.control-sequence')?.checked || false
+                });
+            });
+        }
+
+        return { data, files };
+    }
+
+    /**
      * Clear the form and workspace
      */
     function clearForm() {
@@ -2015,6 +2092,7 @@ const ToolManager = (function() {
         getToolInfo,
         getAllTools,
         getCurrentTool,
+        getCurrentFormData,
         renderToolSelector,
         renderTool,
         clearForm,

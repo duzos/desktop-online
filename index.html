@@ -141,10 +141,83 @@
             enable3DPreview = enabled;
             localStorage.setItem('enable3DPreview', enabled ? 'true' : 'false');
 
-            // If currently viewing a tool that supports preview, refresh it
+            // If currently viewing a tool that supports preview, add/remove preview panel dynamically
             const currentTool = ToolManager.getCurrentTool();
             if (currentTool && ['console-model', 'exterior-model', 'console-variant', 'exterior'].includes(currentTool)) {
-                ToolManager.renderTool(currentTool);
+                const workspace = document.getElementById('workspace');
+                const form = document.getElementById('toolForm');
+                const existingPreviewPanel = document.querySelector('.model-preview-panel');
+                const formWrapper = document.querySelector('.form-with-preview');
+
+                if (enabled) {
+                    // Add preview panel if it doesn't exist
+                    if (!existingPreviewPanel && form) {
+                        // Wrap form if not already wrapped
+                        if (!formWrapper) {
+                            const formContent = document.createElement('div');
+                            formContent.className = 'form-content';
+                            form.parentNode.insertBefore(formContent, form);
+                            formContent.appendChild(form);
+
+                            const previewWrapper = document.createElement('div');
+                            previewWrapper.className = 'form-with-preview';
+                            formContent.parentNode.insertBefore(previewWrapper, formContent);
+                            previewWrapper.appendChild(formContent);
+                        }
+
+                        // Add preview panel
+                        const previewPanel = document.createElement('div');
+                        previewPanel.className = 'model-preview-panel';
+                        previewPanel.innerHTML = `
+                            <h3><i class="fa-solid fa-eye"></i> 3D Preview</h3>
+                            <div id="modelPreviewContainer" class="model-preview-container">
+                                <div class="preview-message">
+                                    <i class="fa-solid fa-cube"></i>
+                                    Upload a model to preview
+                                </div>
+                            </div>
+                            <div class="preview-controls">
+                                <button type="button" class="btn btn-small" onclick="ModelPreview.setAutoRotate(!ModelPreview.getAutoRotate()); this.innerHTML = ModelPreview.getAutoRotate() ? '<i class=\\'fa-solid fa-pause\\'></i> Pause' : '<i class=\\'fa-solid fa-rotate\\'></i> Rotate'">
+                                    <i class="fa-solid fa-pause"></i> Pause
+                                </button>
+                                <button type="button" class="btn btn-small" onclick="ModelPreview.resetCamera()">
+                                    <i class="fa-solid fa-arrows-to-circle"></i> Reset View
+                                </button>
+                            </div>
+                        `;
+
+                        const wrapper = document.querySelector('.form-with-preview');
+                        if (wrapper) {
+                            wrapper.appendChild(previewPanel);
+                        }
+
+                        // Initialize 3D preview
+                        if (typeof ModelPreview !== 'undefined' && ModelPreview.isAvailable()) {
+                            setTimeout(() => {
+                                ModelPreview.init('modelPreviewContainer');
+                            }, 100);
+                        }
+                    }
+                } else {
+                    // Remove preview panel if it exists
+                    if (existingPreviewPanel) {
+                        existingPreviewPanel.remove();
+                    }
+
+                    // Unwrap form if wrapped
+                    if (formWrapper) {
+                        const formContent = formWrapper.querySelector('.form-content');
+                        if (formContent && form) {
+                            formWrapper.parentNode.insertBefore(form, formWrapper);
+                            formWrapper.remove();
+                        }
+                    }
+
+                    // Dispose 3D preview
+                    if (typeof ModelPreview !== 'undefined') {
+                        ModelPreview.dispose();
+                    }
+                }
             }
         }
 
